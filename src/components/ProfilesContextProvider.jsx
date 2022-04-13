@@ -2,10 +2,12 @@ import React from 'react';
 
 export const ProfileContext = React.createContext({
   profiles: [],
+  cachedProfiles: [],
+  dispatch: (any) => {},
 });
 
 function ProfilesReducer(state, action) {
-  let profiles;
+  let profiles = [];
 
   switch (action.type) {
     case 'ascending':
@@ -19,8 +21,19 @@ function ProfilesReducer(state, action) {
       return { profiles };
 
     case 'get_profiles':
-      let profiles_batch = action.profiles;
-      return { ...state, profiles: profiles_batch };
+      let profilesBatch = action.profiles;
+      return { ...state, profiles: profilesBatch, cachedProfiles: profilesBatch };
+
+    case 'search':
+      let search_term = action.name;
+      let filteredProfiles;
+      if (search_term !== '') {
+        filteredProfiles = state.profiles.filter((p) => p.handle === search_term);
+      } else {
+        filteredProfiles = state.cachedProfiles;
+      }
+
+      return { ...state, profiles: filteredProfiles };
 
     default:
       throw new Error();

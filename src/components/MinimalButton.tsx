@@ -1,12 +1,20 @@
+import React, { FC } from 'react';
 import styled from 'styled-components';
 
-function MinimalButton({ children, onClick, style, ...props }) {
+interface IMinimalButton {
+  children: React.ReactNode;
+  onClick: () => {};
+  style: string;
+  [x: string]: any;
+}
+
+const MinimalButton: FC<IMinimalButton> = ({ children, onClick, style, ...props }) => {
   return (
     <Button {...props} onClick={onClick} theme={style}>
       {children}
     </Button>
   );
-}
+};
 
 export default MinimalButton;
 

@@ -1,8 +1,12 @@
+import Header from 'components/Header';
+
+// Pages
 import SearchPage from './pages/SearchPage';
+
+// Context
 import ProfilesContextProvider from './components/ProfilesContextProvider';
 
 import './styles.css';
-import Header from 'components/Header';
 
 function App() {
   return (

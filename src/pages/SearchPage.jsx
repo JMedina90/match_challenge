@@ -9,23 +9,60 @@ class SearchPage extends React.Component {
 
   constructor(props) {
     super(props);
+    this.interval = null;
     this.state = {
       isLoading: true,
       isError: false,
+      countDown: 10,
     };
   }
 
   componentDidMount = async () => {
+    this.timer();
+    await this.getProfiles();
+  };
+
+  timer = () => {
+    this.interval = setInterval(async () => {
+      this.setState(
+        (prevState) => {
+          let { countDown } = prevState;
+
+          return {
+            ...prevState,
+            countDown: countDown === 0 ? 10 : countDown - 1,
+          };
+        },
+        async () => {
+          if (this.state.countDown < 1) {
+            // this.getProfiles();
+            console.log('call api');
+          }
+        }
+      );
+    }, 1000);
+  };
+
+  startTimer = () => {
+    this.timer();
+  };
+
+  getProfiles = async () => {
     try {
       //simulate fetch wait
       // setTimeout(async () => {
       const data = await getProfiles();
       this.context.dispatch({ type: 'get_profiles', profiles: data });
       this.setState({ ...this.state, isLoading: false });
+      // this.startTimer();
       // }, 3000);
     } catch (error) {
       this.setState({ ...this.state, isLoading: false, isError: true });
     }
+  };
+
+  stopTimer = () => {
+    clearInterval(this.interval);
   };
 
   handleSortAscending = () => {
@@ -37,7 +74,7 @@ class SearchPage extends React.Component {
   };
 
   render() {
-    const { isLoading, isError } = this.state;
+    const { isLoading, isError, countDown } = this.state;
     const { profiles = [] } = this.context;
 
     // make loading component
@@ -56,20 +93,25 @@ class SearchPage extends React.Component {
     return (
       <React.Fragment>
         <main style={{ margin: 24 }}>
-          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <MinimalButton disabled>
-              <img src="filter.svg" width={22} alt="filter" />
-            </MinimalButton>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div>
+              <strong>Refresh in:</strong> {countDown}
+            </div>
 
-            <MinimalButton onClick={this.handleSortAscending}>
-              <img src="./ascending.svg" width={22} alt="Sort ascending" />
-            </MinimalButton>
+            <div>
+              <MinimalButton disabled>
+                <img src="filter.svg" width={22} alt="filter" />
+              </MinimalButton>
 
-            <MinimalButton onClick={this.handleSortDescending}>
-              <img src="./descending.svg" width={22} alt="Sort descending" />
-            </MinimalButton>
+              <MinimalButton onClick={this.handleSortAscending}>
+                <img src="./ascending.svg" width={22} alt="Sort ascending" />
+              </MinimalButton>
+
+              <MinimalButton onClick={this.handleSortDescending}>
+                <img src="./descending.svg" width={22} alt="Sort descending" />
+              </MinimalButton>
+            </div>
           </div>
-
           <div
             style={{
               display: 'grid',
@@ -88,6 +130,7 @@ class SearchPage extends React.Component {
               />
             ))}
           </div>
+          <div style={{ margin: 50 }}>Paginate</div>
         </main>
       </React.Fragment>
     );
