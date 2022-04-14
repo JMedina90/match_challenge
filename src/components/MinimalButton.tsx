@@ -3,8 +3,8 @@ import styled from 'styled-components';
 
 interface IMinimalButton {
   children: React.ReactNode;
-  onClick: () => {};
-  style: string;
+  onClick?: () => void;
+  style?: string;
   [x: string]: any;
 }
 

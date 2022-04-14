@@ -6,10 +6,9 @@ interface ISearch {
   handle: string;
   location: string;
   age: number;
-  photoCount: number;
 }
 
-const Search: FC<ISearch> = ({ photoUrl, handle, location, age, photoCount }) => {
+const Search: FC<ISearch> = ({ photoUrl, handle, location, age }) => {
   return (
     <Card>
       <div className="border">
@@ -18,7 +17,7 @@ const Search: FC<ISearch> = ({ photoUrl, handle, location, age, photoCount }) =>
             <h6 className="date-name">{handle}</h6>
             <div className="date-information">
               <div>{location ? `${age} • ${location}` : age}</div>
-              <div>{photoCount}</div>
+              <div>'change'</div>
             </div>
           </Description>
           <img src={photoUrl} alt="potential date" />
@@ -46,6 +45,7 @@ const Avatar = styled.div`
 
   img {
     border-radius: 8px;
+    width: 200px;
   }
 `;
 

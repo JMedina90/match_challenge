@@ -3,6 +3,9 @@ import React from 'react';
 export const ProfileContext = React.createContext({
   profiles: [],
   cachedProfiles: [],
+  totalProfiles: 0,
+  currentPage: 0,
+  totalPages: 0,
   dispatch: (any) => {},
 });
 
@@ -22,7 +25,17 @@ function ProfilesReducer(state, action) {
 
     case 'get_profiles':
       let profilesBatch = action.profiles;
-      return { ...state, profiles: profilesBatch, cachedProfiles: profilesBatch };
+      let limit = 15;
+      let firstPage = profilesBatch.splice(0, limit);
+      let totalPages = Math.ceil(profilesBatch.length / limit);
+
+      return {
+        ...state,
+        profiles: firstPage,
+        cachedProfiles: profilesBatch,
+        totalProfiles: profilesBatch.length,
+        totalPages: totalPages,
+      };
 
     case 'search':
       let search_term = action.name;
@@ -43,6 +56,10 @@ function ProfilesReducer(state, action) {
 function ProfilesContextProvider({ children }) {
   const [state, dispatch] = React.useReducer(ProfilesReducer, {
     profiles: [],
+    cachedProfiles: [],
+    totalProfiles: 0,
+    currentPage: 0,
+    totalPages: 0,
   });
 
   return (

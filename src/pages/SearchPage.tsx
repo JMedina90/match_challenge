@@ -3,11 +3,24 @@ import { ProfileContext } from '../components/ProfilesContextProvider';
 import MinimalButton from '../components/MinimalButton';
 import SearchCard from '../components/SearchCard';
 import { getProfiles } from 'api/api';
+import Spinner from 'components/Spinner';
+import { IUser } from 'interfaces';
 
-class SearchPage extends React.Component {
+interface Props {
+  interval: number;
+}
+
+interface ISearchPage {
+  isLoading: boolean;
+  isError: boolean;
+  countDown: number;
+}
+
+class SearchPage extends React.Component<Props, ISearchPage> {
   static contextType = ProfileContext;
+  private interval: any = null;
 
-  constructor(props) {
+  constructor(props: Props) {
     super(props);
     this.interval = null;
     this.state = {
@@ -18,8 +31,7 @@ class SearchPage extends React.Component {
   }
 
   componentDidMount = async () => {
-    this.timer();
-    await this.getProfiles();
+    await this.startProfiles();
   };
 
   timer = () => {
@@ -35,8 +47,8 @@ class SearchPage extends React.Component {
         },
         async () => {
           if (this.state.countDown < 1) {
-            // this.getProfiles();
-            console.log('call api');
+            await this.getProfiles();
+            console.log('test');
           }
         }
       );
@@ -47,21 +59,26 @@ class SearchPage extends React.Component {
     this.timer();
   };
 
+  startProfiles = () => {
+    setTimeout(() => {
+      // this.startTimer();
+      this.getProfiles();
+    }, 2000);
+  };
+
   getProfiles = async () => {
     try {
       //simulate fetch wait
-      // setTimeout(async () => {
       const data = await getProfiles();
       this.context.dispatch({ type: 'get_profiles', profiles: data });
       this.setState({ ...this.state, isLoading: false });
-      // this.startTimer();
-      // }, 3000);
     } catch (error) {
       this.setState({ ...this.state, isLoading: false, isError: true });
     }
   };
 
   stopTimer = () => {
+    console.log('first');
     clearInterval(this.interval);
   };
 
@@ -73,17 +90,16 @@ class SearchPage extends React.Component {
     this.context.dispatch({ type: 'descending' });
   };
 
+  handlePagination = (page: number) => {
+    console.log(page);
+  };
+
   render() {
     const { isLoading, isError, countDown } = this.state;
-    const { profiles = [] } = this.context;
+    const { profiles = [], totalPages } = this.context;
 
     // make loading component
-    if (isLoading)
-      return (
-        <div role="alert" aria-busy="true">
-          Loading your matches, please wait :)
-        </div>
-      );
+    if (isLoading) return <Spinner text="Loading your matches. Please wait!" />;
 
     // make error component
     if (isError) {
@@ -99,6 +115,9 @@ class SearchPage extends React.Component {
             </div>
 
             <div>
+              <MinimalButton onClick={this.stopTimer}>
+                <div>STOP</div>
+              </MinimalButton>
               <MinimalButton disabled>
                 <img src="filter.svg" width={22} alt="filter" />
               </MinimalButton>
@@ -119,18 +138,24 @@ class SearchPage extends React.Component {
               gridGap: '16px',
             }}
           >
-            {profiles.map((profile) => (
-              <SearchCard
-                key={profile.id}
-                photoUrl={profile.photoUrl}
-                handle={profile.handle}
-                location={profile.location}
-                age={profile.age}
-                photoCount={profile.photoCount}
-              />
-            ))}
+            {profiles?.map((profile: IUser) => {
+              const { login, picture, name, location, dob } = profile;
+
+              return (
+                <SearchCard
+                  key={login.uuid}
+                  photoUrl={picture.large}
+                  handle={name.first}
+                  location={location.city}
+                  age={dob.age}
+                />
+              );
+            })}
           </div>
-          <div style={{ margin: 50 }}>Paginate</div>
+          <div style={{ margin: 50 }}></div>
+          {Array.from({ length: totalPages }, (_, p) => {
+            return <MinimalButton onClick={() => this.handlePagination(p)}>{p}</MinimalButton>;
+          })}
         </main>
       </React.Fragment>
     );
