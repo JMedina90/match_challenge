@@ -1,9 +1,7 @@
 import { FC } from 'react';
 import styled from 'styled-components';
+import type { ISpinner } from '../interfaces/index';
 
-interface ISpinner {
-  text?: string;
-}
 const Spinner: FC<ISpinner> = ({ text = '' }) => {
   return (
     <SpinnerContainer>

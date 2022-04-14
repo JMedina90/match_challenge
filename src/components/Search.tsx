@@ -1,11 +1,8 @@
 import { FC } from 'react';
 import styled from 'styled-components';
+import type { ISearchInput } from '../interfaces/index';
 
-interface Props {
-  onChange: () => any;
-}
-
-const Search: FC<Props> = ({ onChange = () => {} }) => {
+const Search: FC<ISearchInput> = ({ onChange = () => {} }) => {
   return (
     <SearchContainer>
       <SearchInput

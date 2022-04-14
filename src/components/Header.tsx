@@ -7,7 +7,10 @@ import Search from './Search';
 export default function Header() {
   const { dispatch } = useContext(ProfileContext);
 
-  const onChange = debounce((e: any) => dispatch({ type: 'search', name: e.target.value }), 1000);
+  const onChange = debounce(
+    (e: any) => dispatch({ type: 'search', payload: e.target.value }),
+    1000
+  );
 
   return (
     <HeaderContainer>

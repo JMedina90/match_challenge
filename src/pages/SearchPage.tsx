@@ -1,26 +1,27 @@
 import React from 'react';
-import { ProfileContext } from '../components/ProfilesContextProvider';
+
+// Libs
+import styled from 'styled-components';
+
+// Components
 import MinimalButton from '../components/MinimalButton';
-import SearchCard from '../components/SearchCard';
-import { getProfiles } from 'api/api';
 import Spinner from 'components/Spinner';
-import { IUser } from 'interfaces';
+import SearchCard from '../components/SearchCard';
 
-interface Props {
-  interval: number;
-}
+// Context
+import { ProfileContext } from '../components/ProfilesContextProvider';
 
-interface ISearchPage {
-  isLoading: boolean;
-  isError: boolean;
-  countDown: number;
-}
+// Interfaces
+import { IUser, IPropsPage, ISearchPage } from 'interfaces/index';
 
-class SearchPage extends React.Component<Props, ISearchPage> {
+// Misc
+import { getProfiles } from 'api/api';
+
+class SearchPage extends React.Component<IPropsPage, ISearchPage> {
   static contextType = ProfileContext;
   private interval: any = null;
 
-  constructor(props: Props) {
+  constructor(props: IPropsPage) {
     super(props);
     this.interval = null;
     this.state = {
@@ -70,7 +71,7 @@ class SearchPage extends React.Component<Props, ISearchPage> {
     try {
       //simulate fetch wait
       const data = await getProfiles();
-      this.context.dispatch({ type: 'get_profiles', profiles: data });
+      this.context.dispatch({ type: 'get_profiles', payload: data });
       this.setState({ ...this.state, isLoading: false });
     } catch (error) {
       this.setState({ ...this.state, isLoading: false, isError: true });
@@ -90,15 +91,15 @@ class SearchPage extends React.Component<Props, ISearchPage> {
     this.context.dispatch({ type: 'descending' });
   };
 
-  handlePagination = (page: number) => {
-    console.log(page);
+  handlePagination = (page: number, limit: number) => {
+    const offset = page === 0 ? 0 : page * limit;
+    this.context.dispatch({ type: 'paginate', payload: { offset, page } });
   };
 
   render() {
     const { isLoading, isError, countDown } = this.state;
-    const { profiles = [], totalPages } = this.context;
+    const { profiles = [], totalPages, limit } = this.context;
 
-    // make loading component
     if (isLoading) return <Spinner text="Loading your matches. Please wait!" />;
 
     // make error component
@@ -108,15 +109,15 @@ class SearchPage extends React.Component<Props, ISearchPage> {
 
     return (
       <React.Fragment>
-        <main style={{ margin: 24 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <Main>
+          <Options>
             <div>
               <strong>Refresh in:</strong> {countDown}
             </div>
 
             <div>
               <MinimalButton onClick={this.stopTimer}>
-                <div>STOP</div>
+                <div arial-label="Stop refreshing users">STOP</div>
               </MinimalButton>
               <MinimalButton disabled>
                 <img src="filter.svg" width={22} alt="filter" />
@@ -130,14 +131,9 @@ class SearchPage extends React.Component<Props, ISearchPage> {
                 <img src="./descending.svg" width={22} alt="Sort descending" />
               </MinimalButton>
             </div>
-          </div>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr 1fr 1fr',
-              gridGap: '16px',
-            }}
-          >
+          </Options>
+
+          <UsersGrid>
             {profiles?.map((profile: IUser) => {
               const { login, picture, name, location, dob } = profile;
 
@@ -145,21 +141,52 @@ class SearchPage extends React.Component<Props, ISearchPage> {
                 <SearchCard
                   key={login.uuid}
                   photoUrl={picture.large}
-                  handle={name.first}
+                  name={name.first}
                   location={location.city}
                   age={dob.age}
                 />
               );
             })}
-          </div>
-          <div style={{ margin: 50 }}></div>
-          {Array.from({ length: totalPages }, (_, p) => {
-            return <MinimalButton onClick={() => this.handlePagination(p)}>{p}</MinimalButton>;
-          })}
-        </main>
+          </UsersGrid>
+
+          <PaginationContainer>
+            Pages:
+            {Array.from({ length: totalPages }, (_, p) => {
+              return (
+                <MinimalButton onClick={() => this.handlePagination(p, limit)}>
+                  {p + 1}
+                </MinimalButton>
+              );
+            })}
+          </PaginationContainer>
+        </Main>
       </React.Fragment>
     );
   }
 }
 
 export default SearchPage;
+
+const Main = styled.main`
+  margin: 24px;
+`;
+
+const Options = styled.div`
+  display: flex;
+  justify-content: space-between;
+`;
+
+const UsersGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-gap: 16px;
+
+  @media only screen and (max-width: 767px) {
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 8px;
+  }
+`;
+
+const PaginationContainer = styled.div`
+  margin: 50px;
+`;

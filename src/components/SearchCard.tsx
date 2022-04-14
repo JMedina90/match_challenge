@@ -1,23 +1,17 @@
 import { FC } from 'react';
 import styled from 'styled-components';
 
-interface ISearch {
-  photoUrl: string;
-  handle: string;
-  location: string;
-  age: number;
-}
+import type { ISearchCard } from '../interfaces/index';
 
-const Search: FC<ISearch> = ({ photoUrl, handle, location, age }) => {
+const Search: FC<ISearchCard> = ({ photoUrl, name, location, age }) => {
   return (
     <Card>
       <div className="border">
         <Avatar>
           <Description>
-            <h6 className="date-name">{handle}</h6>
+            <h6 className="date-name">{name}</h6>
             <div className="date-information">
               <div>{location ? `${age} • ${location}` : age}</div>
-              <div>'change'</div>
             </div>
           </Description>
           <img src={photoUrl} alt="potential date" />
@@ -46,6 +40,16 @@ const Avatar = styled.div`
   img {
     border-radius: 8px;
     width: 200px;
+  }
+
+  @media only screen and (max-width: 767px) {
+    width: 150px;
+    height: 150px;
+
+    img {
+      border-radius: 8px;
+      width: 150px;
+    }
   }
 `;
 
