@@ -11,6 +11,7 @@ import { IUser } from 'interfaces';
 
 interface IState {
   user: IUser | undefined;
+  notification: boolean;
 }
 class ProfilePage extends React.Component<any, IState> {
   static contextType = ProfileContext;
@@ -18,6 +19,7 @@ class ProfilePage extends React.Component<any, IState> {
     super(props);
     this.state = {
       user: undefined,
+      notification: false,
     };
   }
 
@@ -34,8 +36,12 @@ class ProfilePage extends React.Component<any, IState> {
     this.setState({ ...this.state, user });
   };
 
+  onClickContact = () => {
+    this.setState({ ...this.state, notification: true });
+  };
+
   render() {
-    const { user } = this.state;
+    const { user, notification } = this.state;
 
     if (!user) return <div>User not found!</div>;
 
@@ -52,7 +58,8 @@ class ProfilePage extends React.Component<any, IState> {
             {user?.gender === 'female' ? '♀️' : '♂️'} - {user?.dob.age}
           </div>
           <div>{`${user?.location.city} - ${user?.location.state}`}</div>
-          <Button>Contact this user</Button>
+          <Button onClick={this.onClickContact}>Contact this user</Button>
+          {notification && <Alert> If this user want to talk to your, you will be notified</Alert>}
         </Details>
       </ProfileContainer>
     );
@@ -110,4 +117,11 @@ const Button = styled.button`
     cursor: pointer;
     background-color: #fcfcfc;
   }
+`;
+
+const Alert = styled.div`
+  padding: 10px;
+  border: 1px solid #1aa33f;
+  background-color: #59f081;
+  border-radius: 10px;
 `;
