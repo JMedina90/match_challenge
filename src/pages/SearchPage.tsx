@@ -53,6 +53,7 @@ class SearchPage extends React.Component<IPropsPage, ISearchPage> {
   };
 
   getCachedProfiles = () => {
+    // Get cached profiles so the user doesnt call the api again
     let cachedProfiles = this.context?.cachedProfiles;
     this.context.dispatch({ type: 'get_profiles', payload: cachedProfiles });
     this.setState({ ...this.state, isLoading: false });
@@ -124,7 +125,6 @@ class SearchPage extends React.Component<IPropsPage, ISearchPage> {
 
     if (isLoading) return <Spinner text="Loading your matches. Please wait!" />;
 
-    // make error component
     if (isError) return <ErrorFetch />;
 
     return (
