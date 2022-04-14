@@ -1,22 +1,32 @@
-import { debounce } from 'helpers';
 import { useContext } from 'react';
+
+// Libs
+import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { ProfileContext } from './ProfilesContextProvider';
+
+// Components
 import Search from './Search';
+
+// Context / Store
+import { ProfileContext } from './ProfilesContextProvider';
+
+// Helpers
+import { debounce } from 'helpers';
 
 export default function Header() {
   const { dispatch } = useContext(ProfileContext);
+  const navigate = useNavigate();
 
-  const onChange = debounce(
-    (e: any) => dispatch({ type: 'search', payload: e.target.value }),
-    1000
-  );
+  const onChange = debounce((e: any) => {
+    navigate('/');
+    dispatch({ type: 'search', payload: e.target.value });
+  }, 1000);
 
   return (
     <HeaderContainer>
-      <a href="/" aria-label="Go to homescreen">
+      <Link to="/" aria-label="Go to homescreen">
         <img src="./logo.svg" alt="Match logo" width="110" />
-      </a>
+      </Link>
       <Search onChange={onChange} />
     </HeaderContainer>
   );

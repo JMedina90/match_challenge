@@ -1,5 +1,9 @@
 import { FC } from 'react';
+
+// Libs
 import styled from 'styled-components';
+
+// Interfaces
 import type { ISearchInput } from '../interfaces/index';
 
 const Search: FC<ISearchInput> = ({ onChange = () => {} }) => {

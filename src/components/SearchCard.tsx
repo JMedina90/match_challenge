@@ -1,22 +1,24 @@
 import { FC } from 'react';
+
+// Libs
+import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 
+// Interfaces
 import type { ISearchCard } from '../interfaces/index';
 
-const Search: FC<ISearchCard> = ({ photoUrl, name, location, age }) => {
+const Search: FC<ISearchCard> = ({ photoUrl, name, location, age, username }) => {
   return (
     <Card>
-      <div className="border">
-        <Avatar>
-          <Description>
-            <h6 className="date-name">{name}</h6>
-            <div className="date-information">
-              <div>{location ? `${age} • ${location}` : age}</div>
-            </div>
-          </Description>
-          <img src={photoUrl} alt="potential date" />
-        </Avatar>
-      </div>
+      <Avatar>
+        <Description to={`/profile?username=${username}`} aria-label={`Visit ${name} profile`}>
+          <h6 className="date-name">{name}</h6>
+          <div className="date-information">
+            <div>{location ? `${age} • ${location}` : age}</div>
+          </div>
+        </Description>
+        <img src={photoUrl} alt="potential date" />
+      </Avatar>
     </Card>
   );
 };
@@ -53,7 +55,7 @@ const Avatar = styled.div`
   }
 `;
 
-const Description = styled.div`
+const Description = styled(Link)`
   display: flex;
   justify-content: end;
   flex-direction: column;
@@ -62,7 +64,10 @@ const Description = styled.div`
   left: 0;
   right: 0;
   color: white;
-  margin: 8px;
+  padding: 8px;
+  background: rgb(0, 0, 0);
+  background: linear-gradient(0deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%);
+  border-radius: 5px;
 
   .date-name {
     font-size: 16px;
@@ -71,5 +76,9 @@ const Description = styled.div`
   .date-information {
     display: flex;
     justify-content: space-between;
+  }
+
+  &:hover {
+    color: #1927ef;
   }
 `;

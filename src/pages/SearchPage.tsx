@@ -8,7 +8,7 @@ import MinimalButton from '../components/MinimalButton';
 import Spinner from 'components/Spinner';
 import SearchCard from '../components/SearchCard';
 
-// Context
+// Context / Store
 import { ProfileContext } from '../components/ProfilesContextProvider';
 
 // Interfaces
@@ -16,6 +16,7 @@ import { IUser, IPropsPage, ISearchPage } from 'interfaces/index';
 
 // Misc
 import { getProfiles } from 'api/api';
+import ErrorFetch from 'components/ErrorFetch';
 
 class SearchPage extends React.Component<IPropsPage, ISearchPage> {
   static contextType = ProfileContext;
@@ -32,7 +33,29 @@ class SearchPage extends React.Component<IPropsPage, ISearchPage> {
   }
 
   componentDidMount = async () => {
-    await this.startProfiles();
+    let { cachedProfiles, refetch } = this.context;
+
+    // Check if the user has timer set when loading the page, so it doesnt loses its current matches
+    if (refetch) this.startTimer();
+
+    if (!cachedProfiles.length) {
+      await this.startProfiles();
+    } else {
+      this.getCachedProfiles();
+    }
+  };
+
+  componentDidUpdate = () => {
+    const { refetch } = this.context;
+    if (!refetch) {
+      clearInterval(this.interval);
+    }
+  };
+
+  getCachedProfiles = () => {
+    let cachedProfiles = this.context?.cachedProfiles;
+    this.context.dispatch({ type: 'get_profiles', payload: cachedProfiles });
+    this.setState({ ...this.state, isLoading: false });
   };
 
   timer = () => {
@@ -48,8 +71,7 @@ class SearchPage extends React.Component<IPropsPage, ISearchPage> {
         },
         async () => {
           if (this.state.countDown < 1) {
-            await this.getProfiles();
-            console.log('test');
+            await this.fetchProfiles();
           }
         }
       );
@@ -57,19 +79,19 @@ class SearchPage extends React.Component<IPropsPage, ISearchPage> {
   };
 
   startTimer = () => {
+    this.context.dispatch({ type: 'timer', payload: true });
     this.timer();
   };
 
   startProfiles = () => {
+    // simulate delay to show loading component
     setTimeout(() => {
-      // this.startTimer();
-      this.getProfiles();
+      this.fetchProfiles();
     }, 2000);
   };
 
-  getProfiles = async () => {
+  fetchProfiles = async () => {
     try {
-      //simulate fetch wait
       const data = await getProfiles();
       this.context.dispatch({ type: 'get_profiles', payload: data });
       this.setState({ ...this.state, isLoading: false });
@@ -79,7 +101,7 @@ class SearchPage extends React.Component<IPropsPage, ISearchPage> {
   };
 
   stopTimer = () => {
-    console.log('first');
+    this.context.dispatch({ type: 'timer', payload: false });
     clearInterval(this.interval);
   };
 
@@ -103,22 +125,25 @@ class SearchPage extends React.Component<IPropsPage, ISearchPage> {
     if (isLoading) return <Spinner text="Loading your matches. Please wait!" />;
 
     // make error component
-    if (isError) {
-      return <div>An error ocurred while loading your matches. Please try again</div>;
-    }
+    if (isError) return <ErrorFetch />;
 
     return (
       <React.Fragment>
-        <Main>
-          <Options>
-            <div>
-              <strong>Refresh in:</strong> {countDown}
-            </div>
+        <Options>
+          <div className="left-options">
+            <strong>Refresh profile in: </strong> {countDown} seconds
+          </div>
 
+          <div className="right-options">
             <div>
-              <MinimalButton onClick={this.stopTimer}>
-                <div arial-label="Stop refreshing users">STOP</div>
+              <MinimalButton onClick={this.startTimer}>
+                <div arial-label="Stop refreshing users">Restart Timer</div>
               </MinimalButton>
+              <MinimalButton onClick={this.stopTimer}>
+                <div arial-label="Stop refreshing users">Stop Timer</div>
+              </MinimalButton>
+            </div>
+            <div>
               <MinimalButton disabled>
                 <img src="filter.svg" width={22} alt="filter" />
               </MinimalButton>
@@ -131,35 +156,36 @@ class SearchPage extends React.Component<IPropsPage, ISearchPage> {
                 <img src="./descending.svg" width={22} alt="Sort descending" />
               </MinimalButton>
             </div>
-          </Options>
+          </div>
+        </Options>
 
-          <UsersGrid>
-            {profiles?.map((profile: IUser) => {
-              const { login, picture, name, location, dob } = profile;
+        <UsersGrid>
+          {profiles?.map((profile: IUser) => {
+            const { login, picture, name, location, dob } = profile;
 
-              return (
-                <SearchCard
-                  key={login.uuid}
-                  photoUrl={picture.large}
-                  name={name.first}
-                  location={location.city}
-                  age={dob.age}
-                />
-              );
-            })}
-          </UsersGrid>
+            return (
+              <SearchCard
+                key={login.username}
+                photoUrl={picture.large}
+                name={name.first}
+                location={location.city}
+                age={dob.age}
+                username={login.username}
+              />
+            );
+          })}
+        </UsersGrid>
 
-          <PaginationContainer>
-            Pages:
-            {Array.from({ length: totalPages }, (_, p) => {
-              return (
-                <MinimalButton onClick={() => this.handlePagination(p, limit)}>
-                  {p + 1}
-                </MinimalButton>
-              );
-            })}
-          </PaginationContainer>
-        </Main>
+        <PaginationContainer>
+          Pages:
+          {Array.from({ length: totalPages }, (_, p) => {
+            return (
+              <MinimalButton key={p} onClick={() => this.handlePagination(p, limit)}>
+                {p + 1}
+              </MinimalButton>
+            );
+          })}
+        </PaginationContainer>
       </React.Fragment>
     );
   }
@@ -167,13 +193,25 @@ class SearchPage extends React.Component<IPropsPage, ISearchPage> {
 
 export default SearchPage;
 
-const Main = styled.main`
-  margin: 24px;
-`;
-
 const Options = styled.div`
   display: flex;
   justify-content: space-between;
+  flex-direction: row;
+
+  .left-options {
+    display: flex;
+    align-items: center;
+  }
+  .right-options {
+    display: flex;
+  }
+
+  @media only screen and (max-width: 767px) {
+    flex-direction: column;
+    .right-options {
+      flex-direction: column;
+    }
+  }
 `;
 
 const UsersGrid = styled.div`

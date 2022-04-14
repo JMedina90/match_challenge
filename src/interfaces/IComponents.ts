@@ -6,7 +6,7 @@ export interface IMinimalButton {
 }
 
 export interface ISearchInput {
-  onChange: () => any;
+  onChange: (e: any) => any;
 }
 
 export interface ISearchCard {
@@ -14,6 +14,7 @@ export interface ISearchCard {
   name: string;
   location: string;
   age: number;
+  username: string;
 }
 
 export interface ISpinner {

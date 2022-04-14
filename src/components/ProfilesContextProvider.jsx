@@ -1,5 +1,7 @@
-import { pagination } from 'helpers';
 import React from 'react';
+
+// Helpers
+import { pagination } from 'helpers';
 
 export const ProfileContext = React.createContext({
   profiles: [],
@@ -9,22 +11,28 @@ export const ProfileContext = React.createContext({
   totalPages: 0,
   limit: 10,
   offset: 0,
+  refetch: true,
   dispatch: (any) => {},
 });
 
 function ProfilesReducer(state, action) {
   let profiles = [];
+  let cached = [];
 
   switch (action.type) {
     case 'ascending':
-      profiles = [...state.profiles];
-      profiles.sort((profileA, profileB) => (profileA.handle > profileB.handle ? 1 : -1));
-      return { profiles };
+      profiles = [...state.cachedProfiles];
+      profiles.sort((profileA, profileB) => (profileA.name.first > profileB.name.first ? 1 : -1));
+      cached = [...profiles];
+      profiles = profiles.slice(0, state.limit);
+      return { ...state, profiles, cachedProfiles: cached };
 
     case 'descending':
-      profiles = [...state.profiles];
-      profiles.sort((profileA, profileB) => (profileA.handle < profileB.handle ? 1 : -1));
-      return { profiles };
+      profiles = [...state.cachedProfiles];
+      profiles.sort((profileA, profileB) => (profileA.name.first < profileB.name.first ? 1 : -1));
+      cached = [...profiles];
+      profiles = profiles.slice(0, state.limit);
+      return { ...state, profiles, cachedProfiles: cached };
 
     case 'get_profiles':
       let _limit = state.limit;
@@ -51,16 +59,21 @@ function ProfilesReducer(state, action) {
           (p) => p.name.first.toLowerCase() === search_term.toLowerCase()
         );
       } else {
-        filteredProfiles = pagination(state.cachedProfiles, state.offset, state.limit);
+        const { cachedProfiles, offset, limit } = state;
+        filteredProfiles = pagination(cachedProfiles, offset, limit);
       }
 
-      return { ...state, profiles: filteredProfiles };
+      return { ...state, profiles: filteredProfiles, refetch: false };
 
     case 'paginate':
       const { offset, page } = action.payload;
       const paginatedProfiles = pagination(state.cachedProfiles, offset, state.limit);
 
       return { ...state, profiles: paginatedProfiles, currentPage: page, offset };
+
+    case 'timer':
+      const refetch = action.payload;
+      return { ...state, refetch };
 
     default:
       throw new Error();
@@ -76,6 +89,7 @@ function ProfilesContextProvider({ children }) {
     totalPages: 0,
     limit: 10,
     offset: 0,
+    refetch: true,
   });
 
   return (

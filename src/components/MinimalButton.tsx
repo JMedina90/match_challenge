@@ -1,5 +1,9 @@
-import React, { FC } from 'react';
+import { FC } from 'react';
+
+// Libs
 import styled from 'styled-components';
+
+// Interfaces
 import type { IMinimalButton } from '../interfaces/index';
 
 const MinimalButton: FC<IMinimalButton> = ({ children, onClick, style, ...props }) => {
@@ -18,4 +22,9 @@ const Button = styled.button`
   border: 0;
   cursor: pointer;
   margin: 8px;
+  height: 42px;
+
+  &:hover {
+    background-color: #e8e8e8;
+  }
 `;
